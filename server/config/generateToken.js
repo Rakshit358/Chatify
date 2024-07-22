@@ -1,7 +1,7 @@
 import JsonWebToken from "jsonwebtoken";
 
 const generateToken = (id) => {
-  return JsonWebToken.sign({ id }, process.env.JWT_SECRET, {
+  return JsonWebToken.sign({ id }, "mySecret1234", {
     expiresIn: "2 days",
   });
 };

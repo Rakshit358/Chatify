@@ -1,8 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassWord] = useState("");
@@ -29,10 +31,12 @@ export default function SignUpPage() {
         { name: userName, email: email, password: password },
         config
       );
-
+      localStorage.setItem("token", data.token);
       alert("User saved successfully");
+      navigate("/chatscreen");
     } catch (error) {
       console.log(error);
+      alert("Error registering the user try again later");
     }
 
     setUserName("");

@@ -3,6 +3,7 @@ import { User } from "../models/userModel.js";
 import generateToken from "../config/generateToken.js";
 
 const registerUser = asyncHandler(async (req, res) => {
+  console.log("here\n");
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -20,13 +21,17 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
   });
+  console.log(user);
 
   if (user) {
-    res.status(201).json({
+    const token = generateToken(user._id);
+    console.log(token);
+    return res.json({
+      message: "success",
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: token,
     });
   } else {
     res.status(400);
@@ -36,14 +41,18 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  // console.log(req.body);
   const user = await User.findOne({ email });
-
+  // console.log(user);
   if (user && (await user.matchPassword(password))) {
-    res.json({
+    const token = generateToken(user._id);
+    // console.log(token);
+    return res.json({
+      message: "success",
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: token,
     });
   } else {
     res.status(401);
@@ -52,20 +61,26 @@ const authUser = asyncHandler(async (req, res) => {
 });
 
 const allUsers = asyncHandler(async (req, res) => {
-  const searchWord = req.query.search
-    ? {
-        $or: [
-          { name: { $regex: req.query.search, $options: "i" } },
-          { email: { $regex: req.query.search, $options: "i" } },
-        ],
-      }
-    : {};
-
-  const searchedUser = await User.find(searchWord).find({
-    _id: { $ne: req.user._id },
-  });
-  res.send(searchedUser);
-  // console.log(searchWord);
+  const users = await User.find().select("name _id");
+  // console.log(users);
+  res.send(users);
 });
+
+// const allUsers = asyncHandler(async (req, res) => {
+//   const searchWord = req.query.search
+//     ? {
+//         $or: [
+//           { name: { $regex: req.query.search, $options: "i" } },
+//           { email: { $regex: req.query.search, $options: "i" } },
+//         ],
+//       }
+//     : {};
+
+//   const searchedUser = await User.find(searchWord).find({
+//     _id: { $ne: req.user._id },
+//   });
+//   res.send(searchedUser);
+//   // console.log(searchWord);
+// });
 
 export { registerUser, authUser, allUsers };

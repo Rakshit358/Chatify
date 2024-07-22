@@ -1,15 +1,17 @@
-import { useState } from "react";
-import "./App.css";
-import { ChakraProvider } from "@chakra-ui/react";
-import { Button, ButtonGroup } from "@chakra-ui/react";
+// import ChatPage from "./component/ChatPage";
+// import HomePage from "./component/HomePage";
+// import LoginPage from "./component/LoginPage";
+// import { Route, RouterProvider, Routes } from "react-router-dom";
 
-function App() {
-  return (
-    <ChakraProvider>
-      <h1 className="text-3xl font-bold underline mb-4">Hello world!</h1>
-      <Button colorScheme="blue">Button</Button>
-    </ChakraProvider>
-  );
-}
+// function App() {
+//   return (
+//     <RouterProvider>
+//       <Routes>
+//         <Route path="/" element={<HomePage />} />
+//         <Route path="/chatpage" element={<ChatPage />} />
+//       </Routes>
+//     </RouterProvider>
+//   );
+// }
 
-export default App;
+// export default App;

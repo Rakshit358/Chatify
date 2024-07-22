@@ -4,15 +4,19 @@ import asyncHandler from "express-async-handler";
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
-
+  console.log(`Printing the req`);
+  console.log(req.headers);
+  console.log(req.headers.authorization);
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
+    console.log("Reached inside");
     try {
       token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+      console.log(token);
+      const decoded = JsonWebToken.verify(token, "mySecret1234");
+      console.log("HERE");
       req.user = await User.findById(decoded.id).select("-password");
 
       next();

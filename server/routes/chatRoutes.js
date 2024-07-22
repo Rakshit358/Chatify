@@ -10,6 +10,7 @@ import {
 } from "../controllers/chatController.js";
 const router = express.Router();
 
+// router.post("/", accessChat);
 router.route("/").post(protect, accessChat);
 router.route("/").get(protect, fetchChat);
 router.route("/group").post(protect, createGroupChat);

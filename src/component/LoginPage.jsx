@@ -1,6 +1,9 @@
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [password, setPassWord] = useState("");
 
@@ -8,8 +11,24 @@ export default function LoginPage() {
     setUserName(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/user/login",
+        {
+          email: userName,
+          password: password,
+        }
+      );
+      console.log(data);
+      localStorage.setItem("token", data.token);
+      alert("User saved successfully");
+      navigate("/chatscreen");
+    } catch (error) {
+      console.log(error);
+      alert("login failed try again later");
+    }
     console.log(userName);
     console.log(password);
     setUserName("");
@@ -17,7 +36,7 @@ export default function LoginPage() {
   };
   return (
     <div className="flex flex-col absolute bottom-16 right-[-104px]">
-      <label className="ml-4">Username</label>
+      <label className="ml-4">Email</label>
       <input
         className="bg-gray-300 m-4 h-[35px]"
         type="text"

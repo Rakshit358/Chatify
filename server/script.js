@@ -5,7 +5,9 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import messageRoutes from "./routes/messageRoute.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+import { Server } from "socket.io";
 
 const port = process.env.PORT || 5000;
 dotenv.config();
@@ -13,126 +15,45 @@ const app = express();
 connectDB();
 app.use(cors());
 app.use(express.json());
-
-app.get("/", (req, res) => {
-  const chats = [
-    {
-      isGroupChat: false,
-      users: [
-        {
-          name: "John Doe",
-          email: "john@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-      ],
-      _id: "617a077e18c25468bc7c4dd4",
-      chatName: "John Doe",
-    },
-    {
-      isGroupChat: false,
-      users: [
-        {
-          name: "Guest User",
-          email: "guest@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-      ],
-      _id: "617a077e18c25468b27c4dd4",
-      chatName: "Guest User",
-    },
-    {
-      isGroupChat: false,
-      users: [
-        {
-          name: "Anthony",
-          email: "anthony@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-      ],
-      _id: "617a077e18c2d468bc7c4dd4",
-      chatName: "Anthony",
-    },
-    {
-      isGroupChat: true,
-      users: [
-        {
-          name: "John Doe",
-          email: "jon@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-        {
-          name: "Guest User",
-          email: "guest@example.com",
-        },
-      ],
-      _id: "617a518c4081150716472c78",
-      chatName: "Friends",
-      groupAdmin: {
-        name: "Guest User",
-        email: "guest@example.com",
-      },
-    },
-    {
-      isGroupChat: false,
-      users: [
-        {
-          name: "Jane Doe",
-          email: "jane@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-      ],
-      _id: "617a077e18c25468bc7cfdd4",
-      chatName: "Jane Doe",
-    },
-    {
-      isGroupChat: true,
-      users: [
-        {
-          name: "John Doe",
-          email: "jon@example.com",
-        },
-        {
-          name: "Piyush",
-          email: "piyush@example.com",
-        },
-        {
-          name: "Guest User",
-          email: "guest@example.com",
-        },
-      ],
-      _id: "617a518c4081150016472c78",
-      chatName: "Chill Zone",
-      groupAdmin: {
-        name: "Guest User",
-        email: "guest@example.com",
-      },
-    },
-  ];
-  res.send(chats);
-});
-
 app.use("/api/user", userRoutes);
-
+app.use("/api/message", messageRoutes);
 app.use("/api/chat", chatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`listening on port ${port}`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+  },
+});
+
+io.on("connection", (socket) => {
+  // console.log(socket);
+  console.log("Connected successfully");
+
+  socket.on("setup", (userData) => {
+    socket.join(userData);
+    console.log(userData);
+    socket.emit("connected");
+  });
+
+  socket.on("join chat", (room) => {
+    socket.join(room);
+    console.log("User joined the room" + room);
+  });
+
+  socket.on("new message", (newMessageReceived) => {
+    var chat = newMessageReceived.chat;
+    if (!chat.users) return console.log("chat.users not defined");
+
+    chat.users.forEach((user) => {
+      if (user._id === newMessageReceived.sender._id) return;
+      socket.in(user._id).emit("message received", newMessageReceived);
+    });
+  });
 });

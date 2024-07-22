@@ -4,6 +4,8 @@ import { User } from "../models/userModel.js";
 
 const accessChat = asyncHandler(async (req, res) => {
   const { userId } = req.body;
+  console.log(userId);
+
   if (!userId) {
     console.log("Chat not found");
     return res.sendStatus(400);
@@ -12,7 +14,7 @@ const accessChat = asyncHandler(async (req, res) => {
   var isChat = await Chat.find({
     isGroupChat: false,
     $and: [
-      { users: { $elemMatch: { $eq: req.user._id } } },
+      { users: { $elemMatch: { $eq: req.user._id.toString() } } },
       { users: { $elemMatch: { $eq: userId } } },
     ],
   })
@@ -21,7 +23,7 @@ const accessChat = asyncHandler(async (req, res) => {
 
   isChat = await User.populate(isChat, {
     path: "latestMessage.sender",
-    select: "name pic email",
+    select: "name email",
   });
 
   if (isChat.length > 0) {
@@ -30,7 +32,7 @@ const accessChat = asyncHandler(async (req, res) => {
     var charData = {
       chatName: "sender",
       isGroupChat: false,
-      users: [req.user._id, userId],
+      users: [req.user._id.toString(), userId],
     };
 
     try {
@@ -49,8 +51,11 @@ const accessChat = asyncHandler(async (req, res) => {
 });
 
 const fetchChat = asyncHandler(async (req, res) => {
+  console.log(req);
   try {
-    Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+    Chat.find({
+      users: { $elemMatch: { $eq: req.user._id } },
+    })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage")
@@ -58,11 +63,12 @@ const fetchChat = asyncHandler(async (req, res) => {
       .then(async (results) => {
         results = await User.populate(results, {
           path: "latestMessage.sender",
-          select: "name pic email",
+          select: "name email",
         });
-      });
 
-    res.status(200).send(results);
+        console.log(results);
+        res.status(200).json(results);
+      });
   } catch (error) {
     console.log(error);
     res.send(400);

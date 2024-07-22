@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
 import HomePage from "./component/HomePage.jsx";
 import ChatPage from "./component/ChatPage.jsx";
 import "./index.css";
