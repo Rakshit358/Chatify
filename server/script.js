@@ -28,7 +28,7 @@ const server = app.listen(port, () => {
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
   },
 });
 
@@ -38,22 +38,25 @@ io.on("connection", (socket) => {
 
   socket.on("setup", (userData) => {
     socket.join(userData);
-    console.log(userData);
+    console.log(`user with id ${userData} joined`);
     socket.emit("connected");
   });
 
   socket.on("join chat", (room) => {
+    console.log("Inside join chat");
     socket.join(room);
     console.log("User joined the room" + room);
   });
 
   socket.on("new message", (newMessageReceived) => {
+    console.log(newMessageReceived);
     var chat = newMessageReceived.chat;
-    if (!chat.users) return console.log("chat.users not defined");
+    if (!chat) return console.log("chat not defined");
 
-    chat.users.forEach((user) => {
-      if (user._id === newMessageReceived.sender._id) return;
-      socket.in(user._id).emit("message received", newMessageReceived);
-    });
+    socket.in(user._id).emit("message received", newMessageReceived);
+    // chat.users.forEach((user) => {
+    //   if (user._id === newMessageReceived.sender._id) return;
+    //   socket.in(user._id).emit("message received", newMessageReceived);
+    // });
   });
 });

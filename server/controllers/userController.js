@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { User } from "../models/userModel.js";
 import generateToken from "../config/generateToken.js";
+import JsonWebToken from "jsonwebtoken";
 
 const registerUser = asyncHandler(async (req, res) => {
   console.log("here\n");
@@ -61,8 +62,12 @@ const authUser = asyncHandler(async (req, res) => {
 });
 
 const allUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("name _id");
-  // console.log(users);
+  const token = req.headers.authorization.split(" ")[1];
+
+  const decoded = JsonWebToken.verify(token, "mySecret1234");
+  const userId = decoded.id;
+  const users = await User.find({ _id: { $ne: userId } }).select("name _id");
+
   res.send(users);
 });
 

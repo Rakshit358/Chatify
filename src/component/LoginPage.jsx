@@ -23,6 +23,7 @@ export default function LoginPage() {
       );
       console.log(data);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data._id);
       alert("User saved successfully");
       navigate("/chatscreen");
     } catch (error) {

@@ -7,24 +7,37 @@ import axios from "axios";
 import io from "socket.io-client";
 
 const endpoint = "http://localhost:5000";
-// var socket, selectedChatCompare;
+var socket, selectedChatCompare;
 
 export default function ChatPage() {
   const [chatSelected, setChatSelected] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [chatId, setChatId] = useState("");
 
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   console.log("Inside use effect");
-  //   const socket = io(endpoint);
-  //   socket.emit("setup", "669e4e108ead953bfbae42c4");
-  // }, []);
+  useEffect(() => {
+    console.log("Inside use effect");
+    socket = io(endpoint);
+    const userId = localStorage.getItem("userId");
+    socket.emit("setup", userId);
+    socket.on("connection", () => {
+      setSocketConnected(true);
+      console.log(`Here inside ${socketConnected}`);
+    });
+  }, []);
 
   async function getAllUsers() {
-    const { data } = await axios.get("http://localhost:5000/api/user/");
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const { data } = await axios.get("http://localhost:5000/api/user/", config);
     console.log(data);
     setUsers(data);
   }
@@ -33,32 +46,46 @@ export default function ChatPage() {
     getAllUsers();
   }, []);
 
-  // Dummy data
-  const dummyUsers = [
-    { id: 1, name: "User1" },
-    { id: 2, name: "User2" },
-    { id: 3, name: "User3" },
-  ];
+  // useEffect(() => {
+  //   socket.on("message received", (newMessageReceived) => {
+  //     console.log(`The new message recieved is ${newMessageReceived}`);
+  //     setMessages([...messages, newMessageReceived]);
+  //   });
+  // });
 
-  const dummyChats = {
-    1: [
-      { id: 1, text: "Hello, how are you?", type: "received" },
-      { id: 2, text: "I'm good, thanks!", type: "sent" },
-    ],
-    2: [
-      { id: 3, text: "Are you coming to the party?", type: "received" },
-      { id: 4, text: "Yes, I'll be there!", type: "sent" },
-    ],
-    3: [
-      { id: 5, text: "What time is the meeting?", type: "received" },
-      { id: 6, text: "It's at 10 AM.", type: "sent" },
-    ],
-  };
+  async function fetchMessages() {
+    if (!chatSelected) return;
+    const token = localStorage.getItem("token");
+    console.log(`chatId is ${chatId}`);
+    console.log(`token is ${token}`);
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const { data } = await axios.get(
+      `http://localhost:5000/api/message/${chatId}`,
+      config
+    );
+    console.log(data[0]);
+    setMessages(
+      data.map((message) => ({ text: message.content, type: "received" }))
+    );
+    console.log(messages);
+    console.log("The data received is " + data[0].content);
+  }
+
+  useEffect(() => {
+    fetchMessages();
+    // selectedChatCompare =
+  }, [chatSelected]);
 
   async function handleChatClick(e, user) {
     e.preventDefault();
+    console.log(user);
     console.log("Handle chat clicked called");
     const token = localStorage.getItem("token");
+    const userId = user._id;
+    const body = {
+      userId: userId,
+    };
     console.log(token);
     const config = {
       headers: {
@@ -66,26 +93,51 @@ export default function ChatPage() {
       },
     };
 
-    const { data } = await axios.get("http://localhost:5000/api/chat", config);
+    const { data } = await axios.post(
+      "http://localhost:5000/api/chat",
+      body,
+      config
+    );
 
     console.log(`Data from here`);
     console.log(data);
+
+    setChatId(data._id);
     setChatSelected(user);
-    setMessages(dummyChats[user.id] || []);
+    socket.emit("join chat", chatId);
   }
 
   function handleOnChange(e) {
     setMessage(e.target.value);
   }
 
-  function handleSendClick(e) {
-    if (message.trim() !== "") {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: message, type: "sent" },
-      ]);
+  async function handleSendClick(e) {
+    try {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const { data } = await axios.post(
+        "http://localhost:5000/api/message",
+        {
+          content: message,
+          chatId: chatId,
+        },
+        config
+      );
+      console.log("Success");
+      console.log(data);
+      const newMessage = {
+        text: message,
+        type: "sent",
+      };
+      messages.push(newMessage);
+      socket.emit("new message", data);
       setMessage("");
-    }
+    } catch (error) {}
   }
 
   function handleLogout() {
