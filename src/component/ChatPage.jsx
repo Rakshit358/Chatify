@@ -59,14 +59,17 @@ export default function ChatPage() {
     console.log(`chatId is ${chatId}`);
     console.log(`token is ${token}`);
 
+    const userId = localStorage.getItem("userId");
     const config = { headers: { Authorization: `Bearer ${token}` } };
     const { data } = await axios.get(
       `http://localhost:5000/api/message/${chatId}`,
       config
     );
-    console.log(data[0]);
     setMessages(
-      data.map((message) => ({ text: message.content, type: "received" }))
+      data.map((message) => ({
+        text: message.content,
+        type: message.sender._id === userId ? "sent" : "received",
+      }))
     );
     console.log(messages);
     console.log("The data received is " + data[0].content);
