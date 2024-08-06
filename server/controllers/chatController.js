@@ -4,7 +4,7 @@ import { User } from "../models/userModel.js";
 
 const accessChat = asyncHandler(async (req, res) => {
   const { userId } = req.body;
-  console.log(userId);
+  // console.log(userId);
 
   if (!userId) {
     console.log("Chat not found");
@@ -51,7 +51,7 @@ const accessChat = asyncHandler(async (req, res) => {
 });
 
 const fetchChat = asyncHandler(async (req, res) => {
-  console.log(req);
+  // console.log(req);
   try {
     Chat.find({
       users: { $elemMatch: { $eq: req.user._id } },
@@ -66,7 +66,7 @@ const fetchChat = asyncHandler(async (req, res) => {
           select: "name email",
         });
 
-        console.log(results);
+        // console.log(results);
         res.status(200).json(results);
       });
   } catch (error) {

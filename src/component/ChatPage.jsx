@@ -46,12 +46,24 @@ export default function ChatPage() {
     getAllUsers();
   }, []);
 
-  // useEffect(() => {
-  //   socket.on("message received", (newMessageReceived) => {
-  //     console.log(`The new message recieved is ${newMessageReceived}`);
-  //     setMessages([...messages, newMessageReceived]);
-  //   });
-  // });
+  useEffect(() => {
+    socket.on("message received", (newMessageReceived) => {
+      console.log(`The new message received is ${newMessageReceived}`);
+      const newMessage = {
+        text: newMessageReceived,
+        type: "received",
+      };
+      console.log(newMessage.text);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      // console.log(messages);
+    });
+
+    return () => socket.off("message received");
+  });
+
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
 
   async function fetchMessages() {
     if (!chatSelected) return;
@@ -104,10 +116,10 @@ export default function ChatPage() {
 
     console.log(`Data from here`);
     console.log(data);
-
-    setChatId(data._id);
+    console.log(data._id);
     setChatSelected(user);
-    socket.emit("join chat", chatId);
+    setChatId(data._id);
+    socket.emit("join chat", data._id);
   }
 
   function handleOnChange(e) {

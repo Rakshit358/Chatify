@@ -35,25 +35,30 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   // console.log(socket);
   console.log("Connected successfully");
-
+  var userId;
   socket.on("setup", (userData) => {
     socket.join(userData);
+    userId = userData;
     console.log(`user with id ${userData} joined`);
     socket.emit("connected");
   });
 
   socket.on("join chat", (room) => {
     console.log("Inside join chat");
+    console.log(room);
     socket.join(room);
-    console.log("User joined the room" + room);
+    console.log(`User joined the room ${room}`);
   });
 
   socket.on("new message", (newMessageReceived) => {
+    console.log("INside new message socket");
     console.log(newMessageReceived);
     var chat = newMessageReceived.chat;
     if (!chat) return console.log("chat not defined");
 
-    // socket.in(user._id).emit("message received", newMessageReceived);
+    socket
+      .in(newMessageReceived.chat)
+      .emit("message received", newMessageReceived.content);
     // chat.users.forEach((user) => {
     //   if (user._id === newMessageReceived.sender._id) return;
     //   socket.in(user._id).emit("message received", newMessageReceived);

@@ -19,11 +19,11 @@ const sendMessage = asyncHandler(async (req, res) => {
     chat: chatId,
   };
 
-  console.log(newMessage);
+  // console.log(newMessage);
 
   try {
     var message = await Message.create(newMessage);
-    console.log(`Message created is ${message}`);
+    // console.log(`Message created is ${message}`);
     message = await message.populate("sender", "name");
     // message = await message.populate("chat");
     message = await User.populate(message, {
@@ -35,7 +35,7 @@ const sendMessage = asyncHandler(async (req, res) => {
       latestMessage: message,
     });
 
-    console.log("Final message is " + message);
+    // console.log("Final message is " + message);
     res.json(message);
   } catch (error) {
     console.log("Here");
@@ -51,7 +51,7 @@ const allMessage = asyncHandler(async (req, res) => {
     const messages = await Message.find({ chat: req.params.chatId })
       .populate("sender", "name email")
       .populate("chat");
-    console.log(messages);
+    // console.log(messages);
     res.json(messages);
   } catch (error) {
     console.log(error);
