@@ -123,11 +123,3 @@ The backend code is located in the `server` directory. Key files include:
 ## Contributing
 
 We welcome contributions! Please fork the repository and create a pull request with your changes.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For any inquiries, please contact [your-email@example.com].
